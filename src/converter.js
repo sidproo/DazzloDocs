@@ -29,6 +29,8 @@ class UltimateHTMLToPDFConverter {
 
         const launchOptions = {
             headless: 'new',
+            protocolTimeout: 180000, // 3 minutes timeout for protocol operations
+            timeout: 180000, // 3 minutes timeout for browser launch
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -57,7 +59,9 @@ class UltimateHTMLToPDFConverter {
                 '--safebrowsing-disable-auto-update',
                 '--enable-automation',
                 '--password-store=basic',
-                '--use-mock-keychain'
+                '--use-mock-keychain',
+                '--memory-pressure-off',
+                '--max-old-space-size=4096'
             ]
         };
 
@@ -637,58 +641,65 @@ class UltimateHTMLToPDFConverter {
 
             const page = await this.browser.newPage();
             
-            // Set viewport and user agent
-            await page.setViewport({ width: 1200, height: 800 });
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+            try {
+                // Set viewport and user agent
+                await page.setViewport({ width: 1200, height: 800 });
+                await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
             
-            // Navigate to the temporary HTML file
-            await page.goto(`file://${tempHtmlPath}`, { 
+                // Navigate to the temporary HTML file
+                await page.goto(`file://${tempHtmlPath}`, { 
                 waitUntil: ['networkidle0', 'domcontentloaded'],
-                timeout: 30000
-            });
+                    timeout: 30000
+                });
 
-            // Wait for images to load
-            await page.evaluate(() => {
-                return Promise.all(
-                    Array.from(document.images)
-                        .filter(img => !img.complete)
-                        .map(img => new Promise(resolve => {
-                            img.onload = img.onerror = resolve;
-                        }))
-                );
-            });
+                // Wait for images to load
+                await page.evaluate(() => {
+                    return Promise.all(
+                        Array.from(document.images)
+                            .filter(img => !img.complete)
+                            .map(img => new Promise(resolve => {
+                                img.onload = img.onerror = resolve;
+                            }))
+                    );
+                });
 
-            // Additional wait for any dynamic content
-            await page.waitForTimeout(1000);
+                // Additional wait for any dynamic content
+                await page.waitForTimeout(1000);
 
-            // Generate PDF with letterhead header/footer if needed
-            const pdfOptions = {
-                format: options.format,
-                margin: options.margin,
-                printBackground: options.printBackground,
-                preferCSSPageSize: false, // Let us control margins
-                scale: options.scale,
-                landscape: options.landscape,
-                timeout: 60000
-            };
+                // Generate PDF with letterhead header/footer if needed
+                const pdfOptions = {
+                    format: options.format,
+                    margin: options.margin,
+                    printBackground: options.printBackground,
+                    preferCSSPageSize: false, // Let us control margins
+                    scale: options.scale,
+                    landscape: options.landscape,
+                    timeout: 60000
+                };
 
-            if (options.letterhead) {
-                const { headerTemplate, footerTemplate } = await this.generateLetterheadTemplates(
-                    options.letterheadType || 'trivanta',
-                    options.letterheadMode || 'all',
-                    logoData
-                );
-                
-                pdfOptions.displayHeaderFooter = true;
-                pdfOptions.headerTemplate = headerTemplate;
-                pdfOptions.footerTemplate = footerTemplate;
-                
-                // Adjust margins to account for header/footer
-                const adjustedMargin = this.adjustMarginsForLetterhead(options.margin, options.landscape);
-                pdfOptions.margin = adjustedMargin;
+                if (options.letterhead) {
+                    const { headerTemplate, footerTemplate } = await this.generateLetterheadTemplates(
+                        options.letterheadType || 'trivanta',
+                        options.letterheadMode || 'all',
+                        logoData
+                    );
+                    
+                    pdfOptions.displayHeaderFooter = true;
+                    pdfOptions.headerTemplate = headerTemplate;
+                    pdfOptions.footerTemplate = footerTemplate;
+                    
+                    // Adjust margins to account for header/footer
+                    const adjustedMargin = this.adjustMarginsForLetterhead(options.margin, options.landscape);
+                    pdfOptions.margin = adjustedMargin;
+                }
+
+                const pdfBuffer = await page.pdf(pdfOptions);
+
+            } catch (error) {
+                // Make sure page is closed even if an error occurs
+                await page.close().catch(() => {});
+                throw error;
             }
-
-            const pdfBuffer = await page.pdf(pdfOptions);
 
             await page.close();
 

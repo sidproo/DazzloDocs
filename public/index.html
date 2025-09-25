@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DazzloDocs - Professional HTML to PDF Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-teal: #008080;
+            --light-teal: #20B2AA;
+            --dark-teal: #006666;
+            --accent-teal: #00CED1;
+            --bg-light: #F0FDFD;
+            --bg-white: #FFFFFF;
+            --text-dark: #2C3E50;
+            --text-medium: #5A6C7D;
+            --text-light: #8FA4B3;
+            --border-light: #E1F5FE;
+            --shadow: rgba(0, 128, 128, 0.1);
+            --shadow-hover: rgba(0, 128, 128, 0.2);
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-white) 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-teal) 0%, var(--light-teal) 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .converter-section {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid var(--border-light);
+        }
+
+        .section-title {
+            color: var(--primary-teal);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title::before {
+            content: "📄";
+            font-size: 1.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: var(--text-medium);
+        }
+
+        .tab.active {
+            background: var(--primary-teal);
+            color: white;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(0, 128, 128, 0.1);
+            color: var(--primary-teal);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--bg-white);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-teal);
+            box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.1);
+        }
+
+        .textarea {
+            min-height: 200px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed var(--border-light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-light);
+            color: var(--text-medium);
+            font-weight: 500;
+        }
+
+        .file-upload-label:hover {
+            border-color: var(--primary-teal);
+            background: rgba(0, 128, 128, 0.05);
+            color: var(--primary-teal);
+        }
+
+        .file-upload-label::before {
+            content: "📁";
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+
+        .options-section {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid var(--border-light);
+            height: fit-content;
+        }
+
+        .options-title {
+            color: var(--primary-teal);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .options-title::before {
+            content: "⚙️";
+            font-size: 1.2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-teal);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-teal);
+        }
+
+        .letterhead-section {
+            background: linear-gradient(135deg, rgba(0, 128, 128, 0.05) 0%, rgba(32, 178, 170, 0.05) 100%);
+            border: 1px solid var(--accent-teal);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .letterhead-title {
+            color: var(--primary-teal);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .letterhead-title::before {
+            content: "🏢";
+            font-size: 1.2rem;
+        }
+
+        .password-input {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-medium);
+            font-size: 1.2rem;
+        }
+
+        .convert-btn {
+            width: 100%;
+            padding: 1.2rem 2rem;
+            background: linear-gradient(135deg, var(--primary-teal) 0%, var(--light-teal) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px var(--shadow);
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--shadow-hover);
+        }
+
+        .convert-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: var(--primary-teal);
+        }
+
+        .spinner {
+            border: 3px solid var(--border-light);
+            border-top: 3px solid var(--primary-teal);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .result.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .result.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .download-btn {
+            background: var(--success);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: #0EA76E;
+            transform: translateY(-1px);
+        }
+
+        .features {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 8px 32px var(--shadow);
+            border: 1px solid var(--border-light);
+        }
+
+        .features-title {
+            color: var(--primary-teal);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: var(--bg-light);
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature h3 {
+            color: var(--primary-teal);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .feature p {
+            color: var(--text-medium);
+            font-size: 0.9rem;
+        }
+
+        .orientation-section {
+            background: rgba(32, 178, 170, 0.05);
+            border: 1px solid var(--light-teal);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .orientation-title {
+            color: var(--primary-teal);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .converter-section,
+            .options-section {
+                padding: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                margin-bottom: 0.5rem;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>DazzloDocs</h1>
+        <p>Professional HTML to PDF Converter with Enterprise-Grade Quality</p>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="converter-section">
+                <h2 class="section-title">Convert to PDF</h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="html">HTML Content</div>
+                    <div class="tab" data-tab="file">Upload File</div>
+                    <div class="tab" data-tab="url">From URL</div>
+                </div>
+
+                <form id="converterForm">
+                    <div class="tab-content active" id="html-tab">
+                        <div class="form-group">
+                            <label class="form-label">HTML Content</label>
+                            <textarea 
+                                class="form-input textarea" 
+                                id="htmlContent" 
+                                placeholder="Paste your HTML content here..."
+                                required
+                            ><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DazzloDocs Sample Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #008080, #20B2AA);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .highlight {
+            background: #f0f8ff;
+            padding: 15px;
+            border-left: 4px solid #008080;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #008080;
+            color: white;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="header">
+            <h1>Welcome to DazzloDocs</h1>
+            <p>Professional HTML to PDF Conversion</p>
+        </div>
+
+        <h2>Sample Document Features</h2>
+        
+        <div class="highlight">
+            <h3>What makes DazzloDocs special?</h3>
+            <p>This sample document demonstrates the high-quality PDF conversion capabilities including perfect CSS rendering, professional layouts, and letterhead support.</p>
+        </div>
+
+        <h3>Conversion Statistics</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Status</th>
+                    <th>Quality</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>CSS Rendering</td>
+                    <td>Perfect</td>
+                    <td>100%</td>
+                </tr>
+                <tr>
+                    <td>Image Support</td>
+                    <td>Full Support</td>
+                    <td>100%</td>
+                </tr>
+                <tr>
+                    <td>Table Formatting</td>
+                    <td>Excellent</td>
+                    <td>100%</td>
+                </tr>
+                <tr>
+                    <td>Letterhead Integration</td>
+                    <td>Professional</td>
+                    <td>100%</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Key Benefits</h3>
+        <ul>
+            <li><strong>Pixel-perfect accuracy</strong> - Your design stays exactly as intended</li>
+            <li><strong>Professional letterheads</strong> - Add company branding automatically</li>
+            <li><strong>No content overlap</strong> - Perfect page breaks every time</li>
+            <li><strong>Full media support</strong> - Images, tables, and custom fonts</li>
+            <li><strong>Enterprise-grade quality</strong> - Ready for business use</li>
+        </ul>
+
+        <div class="highlight">
+            <h3>How to Use</h3>
+            <ol>
+                <li>Paste or edit your HTML content in the text area</li>
+                <li>Configure PDF options (format, margins, orientation)</li>
+                <li>Optional: Add professional letterhead with company branding</li>
+                <li>Click "Convert to PDF" and download your document</li>
+            </ol>
+        </div>
+
+        <div class="footer">
+            <h3>Pro Tip</h3>
+            <p>Try enabling the letterhead option for professional business documents!</p>
+            <small>Generated by DazzloDocs - Professional HTML to PDF Converter</small>
+        </div>
+    </div>
+</body>
+</html></textarea>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="file-tab">
+                        <div class="form-group">
+                            <label class="form-label">Select HTML File</label>
+                            <div class="file-upload">
+                                <input type="file" id="htmlFile" accept=".html,.htm">
+                                <label for="htmlFile" class="file-upload-label">
+                                    Choose HTML file or drag and drop
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="url-tab">
+                        <div class="form-group">
+                            <label class="form-label">Website URL</label>
+                            <input 
+                                type="url" 
+                                class="form-input" 
+                                id="websiteUrl" 
+                                placeholder="https://example.com"
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="convert-btn" id="convertBtn">
+                        Convert to PDF
+                    </button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Converting your document... Please wait.</p>
+                </div>
+
+                <div class="result" id="result"></div>
+            </div>
+
+            <div class="options-section">
+                <h3 class="options-title">PDF Options</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Page Format</label>
+                    <select class="form-input" id="format">
+                        <option value="A4">A4</option>
+                        <option value="A3">A3</option>
+                        <option value="Letter">Letter</option>
+                        <option value="Legal">Legal</option>
+                        <option value="Tabloid">Tabloid</option>
+                    </select>
+                </div>
+
+                <div class="orientation-section">
+                    <div class="orientation-title">Page Orientation</div>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="portrait" name="orientation" class="radio" value="false" checked>
+                            <label for="portrait">Portrait</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="landscape" name="orientation" class="radio" value="true">
+                            <label for="landscape">Landscape</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Margin</label>
+                        <select class="form-input" id="margin">
+                            <option value="medium">Medium</option>
+                            <option value="small">Small</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Scale</label>
+                        <select class="form-input" id="scale">
+                            <option value="1.0">100%</option>
+                            <option value="0.8">80%</option>
+                            <option value="0.9">90%</option>
+                            <option value="1.1">110%</option>
+                            <option value="1.2">120%</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="letterhead-section">
+                    <div class="letterhead-title">Professional Letterhead</div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="letterhead" class="checkbox">
+                        <label for="letterhead">Add Company Letterhead</label>
+                    </div>
+
+                    <div class="form-group" id="letterheadOptions" style="display: none;">
+                        <label class="form-label">Letterhead Type</label>
+                        <select class="form-input" id="letterheadType">
+                            <option value="trivanta">Trivanta Edge</option>
+                            <option value="dazzlo">Dazzlo Enterprises</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="letterheadModeGroup" style="display: none;">
+                        <label class="form-label">Letterhead Mode</label>
+                        <select class="form-input" id="letterheadMode">
+                            <option value="all">All Pages</option>
+                            <option value="first">First Page Only</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="passwordGroup" style="display: none;">
+                        <label class="form-label">Access Password</label>
+                        <div class="password-input">
+                            <input 
+                                type="password" 
+                                class="form-input" 
+                                id="password" 
+                                placeholder="Enter letterhead access password"
+                            >
+                            <button type="button" class="password-toggle" id="passwordToggle">👁️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <h2 class="features-title">Why Choose DazzloDocs?</h2>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Pixel-Perfect Accuracy</h3>
+                    <p>High-fidelity CSS rendering with perfect page breaks and no overlapping content</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🏢</div>
+                    <h3>Professional Letterheads</h3>
+                    <p>Add branded company letterheads with logos and contact information on all pages or first page only</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Flexible Orientation</h3>
+                    <p>Support for both portrait and landscape orientations with automatic letterhead adjustment</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🖼️</div>
+                    <h3>Full Media Support</h3>
+                    <p>Supports PNG, JPG, SVG, WebP images with proper formatting</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Table Excellence</h3>
+                    <p>Perfect table rendering with proper borders and alignment</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Optimized conversion engine for quick and reliable results</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                const tabId = tab.dataset.tab + '-tab';
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Letterhead checkbox functionality
+        document.getElementById('letterhead').addEventListener('change', function() {
+            const letterheadOptions = document.getElementById('letterheadOptions');
+            const letterheadModeGroup = document.getElementById('letterheadModeGroup');
+            const passwordGroup = document.getElementById('passwordGroup');
+            
+            if (this.checked) {
+                letterheadOptions.style.display = 'block';
+                letterheadModeGroup.style.display = 'block';
+                passwordGroup.style.display = 'block';
+            } else {
+                letterheadOptions.style.display = 'none';
+                letterheadModeGroup.style.display = 'none';
+                passwordGroup.style.display = 'none';
+            }
+        });
+
+        // Password toggle functionality
+        document.getElementById('passwordToggle').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? '👁️' : '🙈';
+        });
+
+        // File upload functionality
+        document.getElementById('htmlFile').addEventListener('change', function() {
+            const label = document.querySelector('.file-upload-label');
+            if (this.files.length > 0) {
+                label.innerHTML = `📄 ${this.files[0].name}`;
+                label.style.color = 'var(--primary-teal)';
+                label.style.borderColor = 'var(--primary-teal)';
+            }
+        });
+
+        // Form submission
+        document.getElementById('converterForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const activeTab = document.querySelector('.tab.active').dataset.tab;
+            const convertBtn = document.getElementById('convertBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Hide previous results
+            result.style.display = 'none';
+            
+            // Show loading
+            convertBtn.disabled = true;
+            loading.style.display = 'block';
+            
+            try {
+                let endpoint = '/convert/html';
+                let requestBody;
+                let headers = {};
+                
+                // Get common options
+                const marginSelect = document.getElementById('margin').value;
+                let margin;
+                switch(marginSelect) {
+                    case 'small':
+                        margin = { top: '10mm', right: '8mm', bottom: '12mm', left: '8mm' };
+                        break;
+                    case 'large':
+                        margin = { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' };
+                        break;
+                    default:
+                        margin = { top: '12mm', right: '10mm', bottom: '14mm', left: '10mm' };
+                }
+                
+                const letterheadChecked = document.getElementById('letterhead').checked;
+                const landscapeValue = document.querySelector('input[name="orientation"]:checked').value;
+                
+                const commonOptions = {
+                    format: document.getElementById('format').value,
+                    landscape: landscapeValue === 'true',
+                    scale: parseFloat(document.getElementById('scale').value),
+                    margin: margin,
+                    letterhead: letterheadChecked,
+                    letterheadMode: document.getElementById('letterheadMode').value
+                };
+                
+                if (letterheadChecked) {
+                    commonOptions.letterheadType = document.getElementById('letterheadType').value;
+                    const password = document.getElementById('password').value;
+                    if (!password) {
+                        throw new Error('Password is required for letterhead access');
+                    }
+                    commonOptions.password = password;
+                }
+                
+                // Prepare request based on active tab
+                if (activeTab === 'html') {
+                    const htmlContent = document.getElementById('htmlContent').value;
+                    if (!htmlContent.trim()) {
+                        throw new Error('Please enter HTML content');
+                    }
+                    
+                    // Use JSON for HTML content
+                    endpoint = '/convert/html';
+                    headers['Content-Type'] = 'application/json';
+                    requestBody = JSON.stringify({
+                        html: htmlContent,
+                        ...commonOptions
+                    });
+                    
+                } else if (activeTab === 'file') {
+                    const fileInput = document.getElementById('htmlFile');
+                    if (!fileInput.files.length) {
+                        throw new Error('Please select an HTML file');
+                    }
+                    
+                    // Use FormData for file upload
+                    endpoint = '/convert/file';
+                    const formData = new FormData();
+                    formData.append('htmlFile', fileInput.files[0]);
+                    
+                    // Add all options to FormData
+                    Object.keys(commonOptions).forEach(key => {
+                        if (typeof commonOptions[key] === 'object' && commonOptions[key] !== null) {
+                            formData.append(key, JSON.stringify(commonOptions[key]));
+                        } else {
+                            formData.append(key, commonOptions[key]);
+                        }
+                    });
+                    
+                    requestBody = formData;
+                    
+                } else if (activeTab === 'url') {
+                    const url = document.getElementById('websiteUrl').value;
+                    if (!url.trim()) {
+                        throw new Error('Please enter a valid URL');
+                    }
+                    
+                    // Use JSON for URL conversion
+                    endpoint = '/convert/url';
+                    headers['Content-Type'] = 'application/json';
+                    requestBody = JSON.stringify({
+                        url: url,
+                        ...commonOptions
+                    });
+                }
+                
+                // Make request
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: headers,
+                    body: requestBody
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h3>✅ Conversion Successful!</h3>
+                        <p>File size: ${(data.fileSize / 1024).toFixed(2)} KB | Pages: ${data.pageCount}</p>
+                        <p>Format: ${data.options.format} ${data.options.landscape ? 'Landscape' : 'Portrait'}</p>
+                        ${data.options.letterhead ? `<p>Letterhead: ${data.options.letterheadType === 'dazzlo' ? 'Dazzlo Enterprises' : 'Trivanta Edge'} (${data.options.letterheadMode} pages)</p>` : ''}
+                        <a href="${data.downloadUrl}" class="download-btn" download>📥 Download PDF</a>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Conversion failed');
+                }
+                
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `
+                    <h3>❌ Conversion Failed</h3>
+                    <p>${error.message}</p>
+                `;
+            } finally {
+                loading.style.display = 'none';
+                convertBtn.disabled = false;
+                result.style.display = 'block';
+            }
+        });
+
+        // Drag and drop functionality
+        const fileUploadLabel = document.querySelector('.file-upload-label');
+        
+        fileUploadLabel.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary-teal)';
+            this.style.backgroundColor = 'rgba(0, 128, 128, 0.1)';
+        });
+        
+        fileUploadLabel.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--border-light)';
+            this.style.backgroundColor = 'var(--bg-light)';
+        });
+        
+        fileUploadLabel.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--border-light)';
+            this.style.backgroundColor = 'var(--bg-light)';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'text/html') {
+                document.getElementById('htmlFile').files = files;
+                this.innerHTML = `📄 ${files[0].name}`;
+                this.style.color = 'var(--primary-teal)';
+                this.style.borderColor = 'var(--primary-teal)';
+            }
+        });
+    </script>
+</body>
+</html>

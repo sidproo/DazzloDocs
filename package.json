@@ -1,0 +1,54 @@
+{
+  "name": "dazzlodocs-converter",
+  "version": "2.0.0",
+  "description": "Professional HTML to PDF Converter with Enterprise-Grade Quality and Letterhead Support",
+  "main": "src/server.js",
+  "bin": {
+    "dazzlodocs": "./cli.js"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "cli": "node cli.js",
+    "build": "npm install",
+    "test": "echo \"No tests specified\" && exit 0",
+    "setup": "npm install && npm run setup-folders",
+    "setup-folders": "mkdir -p public uploads outputs temp src && echo 'Folders created successfully'"
+  },
+  "keywords": [
+    "html",
+    "pdf",
+    "converter",
+    "puppeteer",
+    "letterhead",
+    "professional",
+    "nodejs",
+    "express",
+    "dazzlodocs"
+  ],
+  "author": "DazzloDocs Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "puppeteer": "^21.5.2",
+    "multer": "^1.4.5-lts.1",
+    "cors": "^2.8.5",
+    "fs-extra": "^11.1.1",
+    "uuid": "^9.0.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/dazzlodocs-converter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/dazzlodocs-converter/issues"
+  },
+  "homepage": "https://github.com/yourusername/dazzlodocs-converter#readme"
+}

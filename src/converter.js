@@ -270,28 +270,26 @@ class UltimateHTMLToPDFConverter {
     generateLetterheadCSS(letterheadType = 'trivanta', letterheadMode = 'all', landscape = false) {
         const isFirstOnly = letterheadMode === 'first';
         
-        // Adjust margins based on orientation
-        const topMargin = landscape ? '10mm' : '12mm';
+        // Improved letterhead positioning - use proper page margins instead of fixed positioning
+        const headerHeight = landscape ? '25mm' : '30mm';
         const sideMargin = landscape ? '12mm' : '10mm';
-        const bottomMargin = landscape ? '12mm' : '14mm';
+        const bottomMargin = landscape ? '15mm' : '20mm';
         
         let letterheadCSS = `
             @page {
                 size: A4 ${landscape ? 'landscape' : 'portrait'};
-                margin: ${topMargin} ${sideMargin} ${bottomMargin} ${sideMargin};
-            }
-            
-            @page:first {
-                margin-top: ${landscape ? '32mm' : '35mm'};
-            }
-        `;
+                margin: ${headerHeight} ${sideMargin} ${bottomMargin} ${sideMargin};
+            }`;
 
-        if (!isFirstOnly) {
+        // For first page only mode, apply letterhead margin only to first page
+        if (isFirstOnly) {
             letterheadCSS += `
-                @page:not(:first) {
-                    margin-top: ${landscape ? '32mm' : '35mm'};
-                }
-            `;
+            @page:first {
+                margin-top: ${headerHeight};
+            }
+            @page:not(:first) {
+                margin-top: 12mm;
+            }`;
         }
 
         letterheadCSS += `
@@ -322,16 +320,17 @@ class UltimateHTMLToPDFConverter {
             
             .pdf-header {
                 position: fixed !important;
-                top: 0 !important; 
+                top: -${headerHeight} !important; 
                 left: 0 !important; 
                 right: 0 !important;
-                height: ${landscape ? '28mm' : '31mm'} !important;
+                height: ${headerHeight} !important;
                 box-sizing: border-box !important;
-                padding: ${landscape ? '10px 20px' : '15px 25px'} !important;
+                padding: ${landscape ? '8px 15px' : '12px 20px'} !important;
                 background: #ffffff !important;
                 font-family: 'Times New Roman', serif !important;
                 z-index: 1000 !important;
                 overflow: hidden !important;
+                margin: 0 !important;
         `;
 
         if (isFirstOnly) {
@@ -339,9 +338,16 @@ class UltimateHTMLToPDFConverter {
                 display: block !important;
             }
             
-            .pdf-header.not-first-page {
-                display: none !important;
-            `;
+            /* Hide letterhead on pages after first */
+            .pdf-header {
+                display: block !important;
+            }
+            
+            @media print {
+                @page:not(:first) .pdf-header {
+                    display: none !important;
+                }
+            }`;
         } else {
             letterheadCSS += `
                 display: block !important;
@@ -488,20 +494,21 @@ class UltimateHTMLToPDFConverter {
 
     generateLetterheadHTML(letterheadType = 'trivanta', letterheadMode = 'all') {
         let headerHTML, footerHTML;
+        const isFirstOnly = letterheadMode === 'first';
 
         if (letterheadType === 'dazzlo') {
             headerHTML = `
-                <div class="pdf-header${letterheadMode === 'first' ? ' first-page-only' : ''}">
-                    <table>
+                <div class="pdf-header${isFirstOnly ? ' first-page-only' : ''}" data-letterhead-mode="${letterheadMode}">
+                    <table style="width: 100%; border-collapse: collapse; margin: 0; padding: 0;">
                         <tr>
-                            <td style="width: 60px;">
-                                <img src="logo.png" alt="Dazzlo Logo">
+                            <td style="width: 60px; vertical-align: middle; padding: 0;">
+                                <img src="logo.png" alt="Dazzlo Logo" style="width: 50px; height: 50px; display: block;">
                             </td>
-                            <td style="padding-left: 25px;">
-                                <div class="company-name">Dazzlo Enterprises Pvt Ltd</div>
-                                <div class="tagline">Redefining lifestyle with Innovations and Dreams</div>
+                            <td style="padding-left: 25px; vertical-align: middle;">
+                                <div class="company-name" style="font-size: 22px; font-weight: bold; color: #333; margin-bottom: 5px; line-height: 1.2;">Dazzlo Enterprises Pvt Ltd</div>
+                                <div class="tagline" style="font-size: 12px; font-style: italic; color: #666; line-height: 1.2;">Redefining lifestyle with Innovations and Dreams</div>
                             </td>
-                            <td class="contact-info">
+                            <td class="contact-info" style="text-align: right; vertical-align: middle; font-size: 11px; font-weight: bold; color: #333; line-height: 1.4;">
                                 Tel: +91 9373015503<br>
                                 Email: info@dazzlo.co.in<br>
                                 Address: Kalyan, Maharashtra 421301
@@ -512,23 +519,23 @@ class UltimateHTMLToPDFConverter {
             `;
 
             footerHTML = `
-                <div class="pdf-footer">
+                <div class="pdf-footer" data-letterhead-mode="${letterheadMode}">
                     info@dazzlo.co.in | www.dazzlo.co.in
                 </div>
             `;
         } else {
             headerHTML = `
-                <div class="pdf-header${letterheadMode === 'first' ? ' first-page-only' : ''}">
-                    <table>
+                <div class="pdf-header${isFirstOnly ? ' first-page-only' : ''}" data-letterhead-mode="${letterheadMode}">
+                    <table style="width: 100%; border-collapse: collapse; margin: 0; padding: 0;">
                         <tr>
-                            <td style="width: 60px;">
-                                <img src="trivanta.png" alt="Trivanta Logo">
+                            <td style="width: 60px; vertical-align: middle; padding: 0;">
+                                <img src="trivanta.png" alt="Trivanta Logo" style="width: 50px; height: 50px; display: block;">
                             </td>
-                            <td style="padding-left: 20px;">
-                                <div class="company-name">Trivanta Edge</div>
-                                <div class="tagline">From Land to Legacy – with Edge</div>
+                            <td style="padding-left: 20px; vertical-align: middle;">
+                                <div class="company-name" style="font-size: 20px; font-weight: bold; color: #1a365d; margin-bottom: 5px; line-height: 1.2;">Trivanta Edge</div>
+                                <div class="tagline" style="font-size: 10px; font-style: italic; color: #2c5282; line-height: 1.2;">From Land to Legacy – with Edge</div>
                             </td>
-                            <td class="contact-info">
+                            <td class="contact-info" style="text-align: right; vertical-align: middle; font-size: 9px; font-weight: bold; color: #1a365d; line-height: 1.4;">
                                 sales@trivantaedge.com<br>
                                 info@trivantaedge.com<br>
                                 +91 9373015503<br>
@@ -540,7 +547,7 @@ class UltimateHTMLToPDFConverter {
             `;
 
             footerHTML = `
-                <div class="pdf-footer">
+                <div class="pdf-footer" data-letterhead-mode="${letterheadMode}">
                     © 2025 Trivanta Edge. All rights reserved. | <span class="website">www.trivantaedge.com</span>
                 </div>
             `;
@@ -559,6 +566,27 @@ class UltimateHTMLToPDFConverter {
 
         const letterheadCSS = this.generateLetterheadCSS(letterheadType, letterheadMode, landscape);
         const { headerHTML, footerHTML } = this.generateLetterheadHTML(letterheadType, letterheadMode);
+        
+        // Add JavaScript for first-page-only letterhead handling
+        const letterheadJS = letterheadMode === 'first' ? `
+        <script>
+            (function() {
+                // Hide letterhead after first page for print
+                if (window.location.search.includes('print=true') || window.matchMedia) {
+                    const style = document.createElement('style');
+                    style.textContent = \`
+                        @media print {
+                            @page:not(:first) .pdf-header,
+                            @page:not(:first) .pdf-footer { 
+                                display: none !important; 
+                                visibility: hidden !important;
+                            }
+                        }
+                    \`;
+                    document.head.appendChild(style);
+                }
+            })();
+        </script>` : '';
 
         return `<!DOCTYPE html>
 <html>
@@ -566,11 +594,14 @@ class UltimateHTMLToPDFConverter {
     <meta charset="utf-8" />
     ${innerHead}
     <style>${letterheadCSS}</style>
+    ${letterheadJS}
 </head>
 <body>
     ${headerHTML}
     ${footerHTML}
-    ${innerBody}
+    <div class="main-content" style="position: relative; z-index: 1;">
+        ${innerBody}
+    </div>
 </body>
 </html>`;
     }

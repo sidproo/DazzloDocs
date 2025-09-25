@@ -162,28 +162,23 @@ class UltimateHTMLToPDFConverter {
     async generateLetterheadTemplates(letterheadType, letterheadMode, logoData) {
         const isFirstOnly = letterheadMode === 'first';
         
-        // Create header template - for first page only, we'll use page number to conditionally show
-        let headerTemplate = '';
-        
+        // For first page only, we'll use a different approach - conditional CSS in the main document
+        // and return empty templates. This works more reliably than headerTemplate page logic.
         if (isFirstOnly) {
-            // For first page only - use pageNumber template variable
-            headerTemplate = `
-                <div style="font-size: 12px; width: 100%; padding: 10px 20px; margin: 0; 
-                            font-family: 'Times New Roman', serif;">
-                    <style>
-                        .letterhead-header { display: none; }
-                        .letterhead-header.page-1 { display: block; }
-                    </style>
-                    <div class="letterhead-header page-<span class="pageNumber"></span>">
-            `;
-        } else {
-            // For all pages
-            headerTemplate = `
-                <div style="font-size: 12px; width: 100%; padding: 10px 20px; margin: 0; 
-                            font-family: 'Times New Roman', serif;">
-                    <div class="letterhead-header">
-            `;
+            return {
+                headerTemplate: '', // Empty for first page only mode
+                footerTemplate: '', // Empty for first page only mode
+                useDocumentHeader: true,
+                documentHeaderHTML: this.generateDocumentHeader(letterheadType, logoData)
+            };
         }
+        
+        // Create header template for all pages mode
+        let headerTemplate = `
+            <div style="font-size: 12px; width: 100%; padding: 0; margin: 0; 
+                        font-family: 'Times New Roman', serif;">
+                <div class="letterhead-header" style="margin: 0; padding: 8px 15px;">
+        `;
 
         if (letterheadType === 'dazzlo') {
             headerTemplate += `
@@ -235,7 +230,7 @@ class UltimateHTMLToPDFConverter {
             `;
         }
 
-        headerTemplate += '</div>';
+        headerTemplate += '</div></div>';
 
         // Footer template
         const footerTemplate = letterheadType === 'dazzlo' 
@@ -245,20 +240,81 @@ class UltimateHTMLToPDFConverter {
         return { headerTemplate, footerTemplate };
     }
 
+    generateDocumentHeader(letterheadType, logoData) {
+        // Generate letterhead HTML that will be injected into the document for first page only
+        let headerHTML = `
+            <div class="document-letterhead" style="margin: 0; padding: 8px 15px; 
+                        font-family: 'Times New Roman', serif; font-size: 12px;">
+        `;
+        
+        if (letterheadType === 'dazzlo') {
+            headerHTML += `
+                <table style="width: 100%; border-collapse: collapse; margin: 0; padding: 0;">
+                    <tr>
+                        <td style="width: 60px; vertical-align: middle; padding: 0;">
+                            ${logoData['logo.png'] ? `<img src="${logoData['logo.png']}" style="width: 50px; height: 50px;" alt="Dazzlo Logo">` : ''}
+                        </td>
+                        <td style="padding-left: 20px; vertical-align: middle;">
+                            <div style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 5px;">
+                                Dazzlo Enterprises Pvt Ltd
+                            </div>
+                            <div style="font-size: 11px; font-style: italic; color: #666;">
+                                Redefining lifestyle with Innovations and Dreams
+                            </div>
+                        </td>
+                        <td style="text-align: right; vertical-align: middle; font-size: 10px; font-weight: bold; color: #333;">
+                            Tel: +91 9373015503<br>
+                            Email: info@dazzlo.co.in<br>
+                            Address: Kalyan, Maharashtra 421301
+                        </td>
+                    </tr>
+                </table>
+            `;
+        } else {
+            // Trivanta letterhead
+            headerHTML += `
+                <table style="width: 100%; border-collapse: collapse; margin: 0; padding: 0;">
+                    <tr>
+                        <td style="width: 60px; vertical-align: middle; padding: 0;">
+                            ${logoData['trivanta.png'] ? `<img src="${logoData['trivanta.png']}" style="width: 50px; height: 50px;" alt="Trivanta Logo">` : ''}
+                        </td>
+                        <td style="padding-left: 20px; vertical-align: middle;">
+                            <div style="font-size: 18px; font-weight: bold; color: #1a365d; margin-bottom: 5px;">
+                                Trivanta Edge
+                            </div>
+                            <div style="font-size: 9px; font-style: italic; color: #2c5282;">
+                                From Land to Legacy – with Edge
+                            </div>
+                        </td>
+                        <td style="text-align: right; vertical-align: middle; font-size: 8px; font-weight: bold; color: #1a365d;">
+                            sales@trivantaedge.com<br>
+                            info@trivantaedge.com<br>
+                            +91 9373015503<br>
+                            Kalyan, Maharashtra
+                        </td>
+                    </tr>
+                </table>
+            `;
+        }
+        
+        headerHTML += '</div>';
+        return headerHTML;
+    }
+
     adjustMarginsForLetterhead(originalMargin, landscape = false) {
         // Convert margin object to ensure we have all sides
         const margin = typeof originalMargin === 'object' ? originalMargin : {
             top: '12mm', right: '10mm', bottom: '14mm', left: '10mm'
         };
 
-        // Add extra top margin for letterhead header
-        const headerHeight = landscape ? '25mm' : '30mm';
+        // Reduce header height for better positioning at top
+        const headerHeight = landscape ? '18mm' : '20mm';
         const topMargin = this.addMargin(margin.top || '12mm', headerHeight);
         
         return {
             ...margin,
             top: topMargin,
-            bottom: this.addMargin(margin.bottom || '14mm', '10mm') // Extra for footer
+            bottom: this.addMargin(margin.bottom || '14mm', '8mm') // Reduced footer margin
         };
     }
 
@@ -618,6 +674,12 @@ class UltimateHTMLToPDFConverter {
         const options = { ...this.defaultOptions, ...customOptions };
         const tempHtmlPath = path.join(__dirname, '..', 'temp', `temp_${uuidv4()}.html`);
         
+        // Load logos from public directory and convert to data URIs if letterhead is needed
+        let logoData = {};
+        if (options.letterhead) {
+            logoData = await this.loadLogosAsDataURI();
+        }
+        
         try {
             // Ensure temp directory exists
             await fs.ensureDir(path.dirname(tempHtmlPath));
@@ -628,9 +690,6 @@ class UltimateHTMLToPDFConverter {
             // Add letterhead if requested
             if (options.letterhead) {
                 const baseDir = path.dirname(tempHtmlPath);
-                
-                // Load logos from public directory and convert to data URIs
-                const logoData = await this.loadLogosAsDataURI();
                 
                 // Don't wrap with letterhead - we'll use headerTemplate instead
                 enhancedHTML = this.enhanceHTMLForLetterhead(enhancedHTML);
@@ -678,19 +737,53 @@ class UltimateHTMLToPDFConverter {
                 };
 
                 if (options.letterhead) {
-                    const { headerTemplate, footerTemplate } = await this.generateLetterheadTemplates(
+                    const letterheadResult = await this.generateLetterheadTemplates(
                         options.letterheadType || 'trivanta',
                         options.letterheadMode || 'all',
                         logoData
                     );
                     
-                    pdfOptions.displayHeaderFooter = true;
-                    pdfOptions.headerTemplate = headerTemplate;
-                    pdfOptions.footerTemplate = footerTemplate;
-                    
-                    // Adjust margins to account for header/footer
-                    const adjustedMargin = this.adjustMarginsForLetterhead(options.margin, options.landscape);
-                    pdfOptions.margin = adjustedMargin;
+                    if (letterheadResult.useDocumentHeader) {
+                        // For first page only - inject letterhead into the document HTML
+                        const bodyContent = await page.content();
+                        const enhancedBodyContent = bodyContent.replace(
+                            /<body[^>]*>/i,
+                            `<body>${letterheadResult.documentHeaderHTML}`
+                        );
+                        await page.setContent(enhancedBodyContent);
+                        
+                        // Add CSS to ensure letterhead doesn't repeat on other pages
+                        await page.addStyleTag({
+                            content: `
+                                .document-letterhead {
+                                    page-break-after: avoid;
+                                    page-break-inside: avoid;
+                                }
+                                @media print {
+                                    @page:not(:first) .document-letterhead {
+                                        display: none !important;
+                                    }
+                                }
+                            `
+                        });
+                        
+                        // Use minimal margins for first page only mode
+                        pdfOptions.margin = {
+                            top: '15mm',
+                            right: options.margin.right || '10mm',
+                            bottom: options.margin.bottom || '14mm', 
+                            left: options.margin.left || '10mm'
+                        };
+                    } else {
+                        // For all pages mode - use header/footer templates
+                        pdfOptions.displayHeaderFooter = true;
+                        pdfOptions.headerTemplate = letterheadResult.headerTemplate;
+                        pdfOptions.footerTemplate = letterheadResult.footerTemplate;
+                        
+                        // Adjust margins to account for header/footer
+                        const adjustedMargin = this.adjustMarginsForLetterhead(options.margin, options.landscape);
+                        pdfOptions.margin = adjustedMargin;
+                    }
                 }
 
                 const pdfBuffer = await page.pdf(pdfOptions);
